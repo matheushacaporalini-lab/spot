@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config(); // carrega variáveis do .env
 
@@ -13,6 +15,10 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 const SCOPES = "user-read-currently-playing user-read-playback-state";
+
+// -------------------------
+// ROTAS DE API
+// -------------------------
 
 // 1) Login → redireciona para o Spotify
 app.get("/login", (req, res) => {
@@ -87,6 +93,24 @@ app.post("/refresh", async (req, res) => {
     }
   });
 });
+
+// -------------------------
+// SERVIR FRONTEND
+// -------------------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// serve arquivos estáticos (index.html e outros)
+app.use(express.static(__dirname));
+
+// fallback → qualquer rota não encontrada retorna index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+const PORT = process.env.PORT || 8800;
+app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
+
 
 const PORT = process.env.PORT || 8800;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
