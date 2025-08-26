@@ -70,6 +70,50 @@
         }, 5000);
       }
     }
+	
+function getTokenFromUrl() {
+  const hash = window.location.hash
+    .substring(1)
+    .split("&")
+    .reduce((acc, item) => {
+      let [key, value] = item.split("=");
+      acc[key] = decodeURIComponent(value);
+      return acc;
+    }, {});
+  return hash.access_token;
+}
+
+const token = getTokenFromUrl();
+
+if (!token) {
+  // Redireciona para login se não tiver token
+  window.location.href =
+    "https://accounts.spotify.com/authorize" +
+    "?client_id=SEU_CLIENT_ID" +
+    "&response_type=token" +
+    "&redirect_uri=" + encodeURIComponent(window.location.href) +
+    "&scope=user-read-playback-state user-read-currently-playing";
+} else {
+  console.log("TOKEN:", token);
+
+  // Exemplo: mostrar a música atual
+  fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+    headers: { Authorization: "Bearer " + token }
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.item) {
+        document.body.innerHTML += `
+          <h2>Tocando agora:</h2>
+          <p>${data.item.name} - ${data.item.artists.map(a => a.name).join(", ")}</p>
+          <img src="${data.item.album.images[0].url}" width="200">
+        `;
+      } else {
+        document.body.innerHTML += "<p>Nenhuma música tocando.</p>";
+      }
+    });
+}
+
   </script>
 </body>
 </html>
